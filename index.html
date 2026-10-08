@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fechador Digital - Acta Notarial Escribanía</title>
+  <title>Fechador Digital - Acto de Fechado Cierto</title>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -43,7 +43,6 @@
       letter-spacing: 1px;
     }
 
-    /* Reloj en vivo de referencia superior */
     .timeline-bar {
       background: #090d16;
       border: 1px solid #334155;
@@ -130,9 +129,9 @@
 <body>
 
 <div class="container">
-  <h1>FECHADOR DIGITAL NOTARIAL</h1>
+  <h1>SISTEMA DE FECHADO PRIVADO</h1>
 
-  <!-- Reloj continuo de referencia -->
+  <!-- Reloj continuo -->
   <div class="timeline-bar">
     <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 4px;">HORA OFICIAL PROVINCIA DE BS. AS. (ART / UTC-3)</div>
     <div class="clock-live" id="liveClock">00/00/0000 00:00:00.000 ART</div>
@@ -140,24 +139,24 @@
 
   <!-- Zona de carga -->
   <div class="upload-zone" onclick="document.getElementById('imgInput').click()">
-    <p>📜 INGRESAR DOCUMENTO O TOMAR FOTO</p>
+    <p>📁 SELECCIONAR ARCHIVO PARA REGISTRO</p>
     <input type="file" id="imgInput" accept="image/*" onchange="handleFileSelect(this.files[0])">
   </div>
 
   <canvas id="hiddenCanvas"></canvas>
 
-  <!-- Resultado con estampa totalmente integrada estilo Escribanía -->
+  <!-- Resultado con estampa integrada -->
   <div class="result-section" id="resultSection">
-    <p style="text-align: left; margin-bottom: 8px; font-weight: bold; color: #cbd5e1;">Acta Estampada (Escribanía & Neón):</p>
-    <img id="finalImage" class="result-img" alt="Imagen estampada escribania">
+    <p style="text-align: left; margin-bottom: 8px; font-weight: bold; color: #cbd5e1;">Comprobante de Fechado Generado:</p>
+    <img id="finalImage" class="result-img" alt="Imagen con estampa de fechado">
     
-    <a id="downloadBtn" class="download-link" href="#" download="acta_escribania_fechada.png">📥 DESCARGAR ACTA NOTARIAL (PNG)</a>
-    <p class="hint-text">(O mantén presionada la imagen para guardarla en el celular)</p>
+    <a id="downloadBtn" class="download-link" href="#" download="acto_fechado_cierto.png">📥 DESCARGAR IMAGEN ESTAMPADA (PNG)</a>
+    <p class="hint-text">(También puedes mantener presionada la imagen para guardarla)</p>
   </div>
 </div>
 
 <script>
-  // Hora oficial de Buenos Aires con milisegundos
+  // Obtener fecha y hora oficial de Argentina con milisegundos
   function getArgentinaFormattedTime(dateObj = new Date()) {
     const ms = String(dateObj.getMilliseconds()).padStart(3, '0');
     
@@ -181,12 +180,11 @@
     return {
       full: `${dateStr} ${timeStr} ART (UTC-3)`,
       dateOnly: dateStr,
-      timeOnlyMs: timeStr,
       stampTime: `${parts.hour}:${parts.minute}:${parts.second}.${ms}`
     };
   }
 
-  // Reloj continuo de la cabecera
+  // Reloj continuo
   function updateLiveClock() {
     const timeData = getArgentinaFormattedTime();
     document.getElementById('liveClock').textContent = timeData.full;
@@ -207,19 +205,19 @@
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const geoStr = `Lat: ${pos.coords.latitude.toFixed(6)}, Lon: ${pos.coords.longitude.toFixed(6)} (±${pos.coords.accuracy.toFixed(1)}m)`;
-          generateNotaryStamp(file, timeData, sizeStr, geoStr);
+          generatePrivateStamp(file, timeData, sizeStr, geoStr);
         },
         () => {
-          generateNotaryStamp(file, timeData, sizeStr, "GEO: No permitida");
+          generatePrivateStamp(file, timeData, sizeStr, "GEO: No permitida");
         },
         { enableHighAccuracy: true, timeout: 5000 }
       );
     } else {
-      generateNotaryStamp(file, timeData, sizeStr, "GEO: No soportada");
+      generatePrivateStamp(file, timeData, sizeStr, "GEO: No soportada");
     }
   }
 
-  function generateNotaryStamp(file, timeData, sizeStr, geoStr) {
+  function generatePrivateStamp(file, timeData, sizeStr, geoStr) {
     const reader = new FileReader();
     reader.onload = function(e) {
       const img = new Image();
@@ -233,106 +231,103 @@
         canvas.width = imgWidth;
         canvas.height = imgHeight;
 
-        // 1. DIBUJAR LA FOTO ORIGINAL
+        // 1. FOTO ORIGINAL
         ctx.drawImage(img, 0, 0, imgWidth, imgHeight);
 
-        // 2. FAJA DE ACTA NOTARIAL INFERIOR (Textura tipo cinta/pergamino oscuro)
-        const bannerHeight = Math.max(130, Math.round(imgHeight * 0.22));
+        // 2. FAJA INFERIOR DE REGISTRO PRIVADO (Fondo oscuro neutro)
+        const bannerHeight = Math.max(125, Math.round(imgHeight * 0.20));
         const bannerY = imgHeight - bannerHeight;
 
-        // Tinta azul oscuro de registro notarial
-        ctx.fillStyle = 'rgba(10, 18, 38, 0.92)';
+        ctx.fillStyle = 'rgba(8, 14, 28, 0.94)';
         ctx.fillRect(0, bannerY, imgWidth, bannerHeight);
 
-        // Guía superior neón resplandeciente
+        // Borde neón cyan superior
         ctx.shadowColor = '#00d8ff';
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 8;
         ctx.strokeStyle = '#00d8ff';
-        ctx.lineWidth = Math.max(3, Math.round(imgWidth * 0.004));
+        ctx.lineWidth = Math.max(2, Math.round(imgWidth * 0.003));
         ctx.beginPath();
         ctx.moveTo(0, bannerY);
         ctx.lineTo(imgWidth, bannerY);
         ctx.stroke();
         ctx.shadowBlur = 0;
 
-        // Datos tipográficos estilo máquina de escribir
-        const fontSizeTitle = Math.max(13, Math.round(imgWidth * 0.024));
-        const fontSizeData = Math.max(11, Math.round(imgWidth * 0.019));
+        // Metadatos en formato monospace estilo terminal/mecanografiado
+        const fontSizeTitle = Math.max(12, Math.round(imgWidth * 0.022));
+        const fontSizeData = Math.max(10, Math.round(imgWidth * 0.018));
         const marginX = Math.round(imgWidth * 0.03);
 
         ctx.fillStyle = '#00d8ff';
         ctx.font = `bold ${fontSizeTitle}px "Courier New", Courier, monospace`;
-        ctx.fillText('ACTA NOTARIAL DE FE CIERTA & REGISTRO DIGITAL', marginX, bannerY + (bannerHeight * 0.22));
+        ctx.fillText('REGISTRO INDEPENDIENTE - ACTO DE FECHADO CIERTO', marginX, bannerY + (bannerHeight * 0.24));
 
-        ctx.fillStyle = '#e2e8f0';
+        ctx.fillStyle = '#cbd5e1';
         ctx.font = `${fontSizeData}px "Courier New", Courier, monospace`;
-        ctx.fillText(`HORA/FECHA OFICIAL: ${timeData.full}`, marginX, bannerY + (bannerHeight * 0.45));
-        ctx.fillText(`DOCUMENTO TAMAÑO : ${sizeStr} [${file.name.substring(0, 25)}]`, marginX, bannerY + (bannerHeight * 0.67));
-        ctx.fillText(`COORDENADAS GEO   : ${geoStr}`, marginX, bannerY + (bannerHeight * 0.88));
+        ctx.fillText(`HORA / FECHA : ${timeData.full}`, marginX, bannerY + (bannerHeight * 0.47));
+        ctx.fillText(`PESO Y ARCHIVO: ${sizeStr} [${file.name.substring(0, 24)}]`, marginX, bannerY + (bannerHeight * 0.68));
+        ctx.fillText(`GEOLOCALIZAC. : ${geoStr}`, marginX, bannerY + (bannerHeight * 0.88));
 
-        // 3. SELLO RECTANGULAR DE ESCRIBANÍA "RECIÉN ENTINTADO"
+        // 3. SELLO RECTANGULAR VINTAGE "ACTO DE FECHADO CIERTO" (Efecto goma y tinta gastada)
         const stampW = Math.max(220, Math.round(imgWidth * 0.38));
-        const stampH = Math.max(120, Math.round(stampW * 0.54));
+        const stampH = Math.max(115, Math.round(stampW * 0.52));
         const stampX = imgWidth - stampW - Math.round(imgWidth * 0.03);
         const stampY = Math.round(imgHeight * 0.03);
 
         ctx.save();
         ctx.translate(stampX + (stampW / 2), stampY + (stampH / 2));
-        ctx.rotate(-4 * Math.PI / 180); // Inclinación manual de estampa
+        ctx.rotate(-6 * Math.PI / 180); // Inclinación de estampa manual
 
-        // Fondo de tinta húmeda (azul de metileno semitransparente)
-        ctx.fillStyle = 'rgba(15, 30, 65, 0.88)';
+        // Tinta azul cobalto gastada
+        ctx.fillStyle = 'rgba(12, 32, 68, 0.88)';
         ctx.fillRect(-stampW/2, -stampH/2, stampW, stampH);
 
-        // EFECTO TINTA FRESCA / DESGASTE DE GOMA EN BORDES
-        ctx.strokeStyle = '#1e40af';
-        ctx.lineWidth = Math.max(4, Math.round(stampH * 0.04));
+        // Bordes dobles con imperfección de estampa
+        ctx.strokeStyle = '#1d4ed8';
+        ctx.lineWidth = Math.max(3, Math.round(stampH * 0.035));
         ctx.strokeRect(-stampW/2, -stampH/2, stampW, stampH);
 
-        ctx.strokeStyle = '#3b82f6';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect((-stampW/2) + 5, (-stampH/2) + 5, stampW - 10, stampH - 10);
+        ctx.strokeStyle = '#2563eb';
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect((-stampW/2) + 4, (-stampH/2) + 4, stampW - 8, stampH - 8);
 
-        // Porosidad/Salpicaduras de tinta de almohadilla recién entintada
-        ctx.fillStyle = 'rgba(30, 64, 175, 0.3)';
-        for (let i = 0; i < 15; i++) {
+        // Generar grano de almohadilla y desgaste de tinta sobre el papel
+        ctx.fillStyle = 'rgba(37, 99, 235, 0.22)';
+        for (let i = 0; i < 22; i++) {
           let rx = (Math.random() - 0.5) * stampW;
           let ry = (Math.random() - 0.5) * stampH;
-          let rsize = Math.random() * 4 + 1;
-          ctx.beginPath();
-          ctx.arc(rx, ry, rsize, 0, Math.PI * 2);
-          ctx.fill();
+          let rsize = Math.random() * 3 + 1;
+          ctx.fillRect(rx, ry, rsize, rsize);
         }
 
         const fontHeader = Math.max(9, Math.round(stampH * 0.11));
-        const fontNeonTime = Math.max(11, Math.round(stampH * 0.15));
+        const fontNeonTime = Math.max(10, Math.round(stampH * 0.15));
         const fontSub = Math.max(8, Math.round(stampH * 0.085));
 
-        // Textos del sello escribanía
+        // Textos del sello completamente privados
         ctx.fillStyle = '#93c5fd';
         ctx.textAlign = 'center';
         ctx.font = `bold ${fontHeader}px "Courier New", Courier, monospace`;
-        ctx.fillText('ESCRIBANÍA DE FE CIERTA', 0, -stampH * 0.28);
+        ctx.fillText('ACTO DE FECHADO CIERTO', 0, -stampH * 0.26);
 
         ctx.font = `${fontSub}px "Courier New", Courier, monospace`;
-        ctx.fillText(`REGISTRO DE FECHA: ${timeData.dateOnly}`, 0, -stampH * 0.10);
+        ctx.fillText(`FECHA: ${timeData.dateOnly}`, 0, -stampH * 0.08);
 
-        // MILISEGUNDOS Y HORA CON BRICE DE NEÓN CYAN SOBRE LA TINTA
+        // HORA OFICIAL CON MILISEGUNDOS EN CELESTE NEÓN
         ctx.shadowColor = '#00f0ff';
-        ctx.shadowBlur = 14;
+        ctx.shadowBlur = 12;
         ctx.fillStyle = '#00f0ff';
         ctx.font = `bold ${fontNeonTime}px "Courier New", Courier, monospace`;
-        ctx.fillText(timeData.stampTime, 0, stampH * 0.18);
+        ctx.fillText(timeData.stampTime, 0, stampH * 0.20);
         ctx.shadowBlur = 0;
 
-        // Pie de acta oficial
+        // Pie neutral
         ctx.fillStyle = '#bfdbfe';
         ctx.font = `bold ${fontSub}px "Courier New", Courier, monospace`;
-        ctx.fillText('PROVINCIA DE BS. AS. • ART', 0, stampH * 0.38);
+        ctx.fillText('PROV. BS. AS. • ART (UTC-3)', 0, stampH * 0.40);
 
         ctx.restore();
 
-        // 4. GENERAR IMAGEN FINAL
+        // 4. DESCARGA
         const dataUrl = canvas.toDataURL('image/png');
         
         const finalImg = document.getElementById('finalImage');
@@ -340,7 +335,7 @@
 
         const downloadBtn = document.getElementById('downloadBtn');
         downloadBtn.href = dataUrl;
-        downloadBtn.download = `Acta_Notarial_Fechada_${Date.now()}.png`;
+        downloadBtn.download = `Acto_Fechado_Cierto_${Date.now()}.png`;
 
         document.getElementById('resultSection').style.display = 'block';
       };
